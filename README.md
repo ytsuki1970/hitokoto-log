@@ -3,8 +3,8 @@
 1行つぶやくだけで、自動で分類して数字を拾い、統計とSNS下書きにするアプリ。
 作成：2026年9月6日／第1段（MVP）
 
-**公開URL：https://ytsuki1970.github.io/hitokoto-log/**
-（公開しているのはアプリのファイルだけ。**記録の中身は端末内から出ない**）
+**公開URL：https://hitokoto-log.pages.dev/**
+（Cloudflare Pages。公開しているのはアプリのファイルだけで、**記録の中身は端末内から出ない**）
 
 ```
 つぶやく（1行）
@@ -110,53 +110,73 @@ SNS下書き →【自分の手で投稿】
 
 ```
 hitokoto-log/
-├─ index.html      ← 本体（これ1つで動く）
-├─ manifest.json   ← PWA
-├─ sw.js           ← オフライン用。https か localhost でのみ登録される
-├─ icon-192.png / icon-512.png / apple-touch-icon.png
-├─ start.bat       ← ローカルサーバで開く（http://localhost:8932）
+├─ public/            ← これがデプロイされる
+│   ├─ index.html     ← 本体（これ1つで動く）
+│   ├─ manifest.json  ← PWA
+│   ├─ sw.js          ← オフライン用。https か localhost でのみ登録される
+│   └─ icon-192.png / icon-512.png / apple-touch-icon.png
+├─ wrangler.jsonc     ← Cloudflare Pages の設定
+├─ package.json       ← npm run deploy / npm run dev
+├─ start.bat          ← ローカルサーバで開く（http://localhost:8932）
 └─ README.md
 ```
 
-`file://` で直接開いても動くが、**Service Worker は登録されない**（オフライン化とホーム画面追加は
-`start.bat` か公開URL経由で）。
+`public/index.html` を `file://` で直接開いても動くが、**Service Worker は登録されない**
+（オフライン化とホーム画面追加は `start.bat` か公開URL経由で）。
 
 ---
 
 ## スマホで使うには
 
-**公開URL：https://ytsuki1970.github.io/hitokoto-log/**
+**公開URL：https://hitokoto-log.pages.dev/**
 
 1. スマホでこのURLを開く
 2. 共有メニューから「ホーム画面に追加」
 3. 以後はアイコンから起動。オフラインでも動く（Service Worker）
 
 > 公開されているのは**アプリのファイルだけ**。記録の中身は開いた端末の中に残り、
-> サーバにもGitHubにも送られない。URLを他人が開いても、その人の空のアプリが立ち上がるだけ。
+> Cloudflare にもGitHubにも送られない。URLを他人が開いても、その人の空のアプリが立ち上がるだけ。
 
-### 更新のしかた
+---
+
+## デプロイ（Cloudflare Pages）
 
 ```bash
 cd C:\Users\ytsuk\dev\hitokoto-log
+npm run deploy        # = npx wrangler pages deploy
+```
+
+10〜20秒で反映される。**GitHubへのpushでは反映されない**（Git連携はしていない）。
+ソースの控えとして push もしておくこと。
+
+```bash
 git add -A && git commit -m "変更の説明" && git push
 ```
 
-push から1〜2分で反映される。**古いキャッシュが残る場合は一度リロード**（本体HTMLは
-ネットワーク優先で取りに行く作りにしてある）。
+- プロジェクト名：`hitokoto-log`（Cloudflare アカウント ytsuki1970@otouki.biz）
+- 設定：`wrangler.jsonc`（`pages_build_output_dir: "public"`）
+- デプロイされるのは **`public/` の中だけ**。README・start.bat・wrangler.jsonc は上がらない
+- 履歴：`npx wrangler pages deployment list --project-name hitokoto-log`
+
+> **GitHub Pages は停止済み**（2026-09-06）。二重に公開すると、URLごとに記録が別々に貯まって
+> 混乱するため。戻すなら `gh api -X POST repos/ytsuki1970/hitokoto-log/pages -f "source[branch]=main" -f "source[path]=/"`
 
 ### PCだけで使いたいとき
 
-`start.bat` をダブルクリック → `http://localhost:8932/`。
-同じWi-Fiのスマホからは `http://<PCのIP>:8932/` でも開ける（PCを起動している間だけ）。
+`start.bat` をダブルクリック → `http://localhost:8932/`（`public/` を配信する）。
+`npm run dev` でも動く（`wrangler pages dev`。将来 `functions/` を足したらこちらを使う）。
 
-> **注意**：`localhost:8932` と GitHub Pages は**別のオリジン扱い**なので、記録は共有されない。
+> **注意**：`localhost` と `hitokoto-log.pages.dev` は**別のオリジン扱い**なので、記録は共有されない。
 > 片方で貯めた記録をもう片方へ移すには、JSONで書き出して読み込む。
 
 ---
 
 ## これから足すもの（第2段以降）
 
-- 端末間の同期（まなびログと同じ Cloudflare D1 方式）
+- 端末間の同期（まなびログと同じ Cloudflare Pages Functions ＋ D1 ＋ Access 方式）
+  → `functions/api/sync.js` を作り、`wrangler.jsonc` のコメント欄の d1 設定を有効にする。
+  まなびログ `dev\manabi-log\functions\api\sync.js` と `sync-schema.sql` がそのまま参考になる
+- 独自ドメイン（例 `log.otouki.biz`）。**当てるならデータを貯める前に**（オリジンが変わると記録が引き継がれない）
 - 夜のリマインド通知
 - 「去年の今日」／年末の1年ふりかえり生成
 - Claude による夜間の再分類（辞書で外したものを直す）

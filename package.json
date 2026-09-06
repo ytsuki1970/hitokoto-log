@@ -1,0 +1,13 @@
+{
+  "name": "hitokoto-log",
+  "private": true,
+  "version": "1.0.0",
+  "description": "1行つぶやくだけで自動分類・統計・SNS下書きにする行動記録アプリ",
+  "scripts": {
+    "dev": "wrangler pages dev",
+    "deploy": "wrangler pages deploy"
+  },
+  "devDependencies": {
+    "wrangler": "^4"
+  }
+}

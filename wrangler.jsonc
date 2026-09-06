@@ -1,0 +1,16 @@
+{
+  // ひとことログ — Cloudflare Pages
+  // デプロイ： npm run deploy   （= wrangler pages deploy）
+  // ローカル： npm run dev      （= wrangler pages dev。functions/ も一緒に動く）
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "hitokoto-log",
+  "compatibility_date": "2026-09-01",
+  "pages_build_output_dir": "public"
+
+  // 第2段（端末間の同期）で足すもの：
+  // "d1_databases": [
+  //   { "binding": "DB", "database_name": "hitokoto-log", "database_id": "<作成後のID>" }
+  // ]
+  // 作り方： npx wrangler d1 create hitokoto-log
+  //          npx wrangler d1 execute hitokoto-log --remote --file=sync-schema.sql
+}
