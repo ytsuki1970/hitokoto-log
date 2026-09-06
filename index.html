@@ -1,0 +1,804 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ひとことログ</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1546a0">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<style>
+:root{
+  --bg:#eef2f9; --card:#ffffff; --ink:#16233a; --muted:#64748b;
+  --line:#dbe3ef; --accent:#1546a0; --accent-soft:#e5edfb;
+  --warn:#b4530a; --danger:#b32020; --ok:#1f8a53;
+  --radius:14px; --shadow:0 1px 2px rgba(16,32,64,.06),0 6px 18px rgba(16,32,64,.06);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0f1522; --card:#172033; --ink:#e6edf8; --muted:#93a3bb;
+    --line:#26324a; --accent:#6ea8ff; --accent-soft:#1d2b47;
+    --warn:#e0a25c; --danger:#ff8080; --ok:#5fd39b;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 18px rgba(0,0,0,.25);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0f1522; --card:#172033; --ink:#e6edf8; --muted:#93a3bb;
+  --line:#26324a; --accent:#6ea8ff; --accent-soft:#1d2b47;
+  --warn:#e0a25c; --danger:#ff8080; --ok:#5fd39b;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 18px rgba(0,0,0,.25);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg); color:var(--ink);
+  font-family:"Hiragino Kaku Gothic ProN","Yu Gothic UI","Yu Gothic","Noto Sans JP",system-ui,sans-serif;
+  font-size:15px; line-height:1.7; -webkit-text-size-adjust:100%;
+}
+.wrap{max-width:600px;margin:0 auto;padding:0 12px calc(84px + env(safe-area-inset-bottom))}
+header{
+  position:sticky; top:0; z-index:20; background:var(--bg);
+  padding:10px 0 8px; border-bottom:1px solid var(--line);
+}
+.brand{display:flex;align-items:center;gap:8px;font-weight:700;letter-spacing:.02em}
+.brand .mark{width:22px;height:22px;border-radius:6px;background:var(--accent);position:relative;flex:0 0 auto}
+.brand .mark::after{content:"";position:absolute;left:4px;right:4px;top:10px;height:2.5px;background:#fff;border-radius:2px}
+.brand small{margin-left:auto;font-weight:400;color:var(--muted);font-size:12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px;margin:12px 0}
+h2{font-size:14px;margin:0 0 10px;color:var(--muted);font-weight:700;letter-spacing:.04em}
+.compose{display:flex;gap:8px;align-items:flex-end}
+textarea#input{
+  flex:1;min-height:46px;max-height:140px;resize:none;padding:11px 12px;
+  border:1.5px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink);
+  font:inherit;line-height:1.5;
+}
+textarea#input:focus{outline:none;border-color:var(--accent)}
+button{font:inherit;cursor:pointer}
+.btn{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:10px;padding:8px 12px}
+.btn:active{transform:translateY(1px)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:700;padding:12px 16px}
+.btn.ghost{background:transparent}
+.btn.sm{padding:5px 9px;font-size:12px;border-radius:8px}
+.btn.danger{color:var(--danger);border-color:var(--danger)}
+.quick{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.quick button{border:1px solid var(--line);background:var(--accent-soft);color:var(--ink);border-radius:999px;padding:5px 11px;font-size:13px}
+.hint{color:var(--muted);font-size:12px;margin-top:8px;line-height:1.6}
+.dayhead{display:flex;align-items:baseline;gap:8px;margin:18px 2px 6px;font-size:13px;color:var(--muted)}
+.dayhead b{color:var(--ink);font-size:14px}
+.entry{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;background:var(--card);border:1px solid var(--line);border-radius:12px;margin-bottom:7px;cursor:pointer}
+.entry:active{background:var(--accent-soft)}
+.entry .time{color:var(--muted);font-size:11px;font-variant-numeric:tabular-nums;padding-top:3px;flex:0 0 34px}
+.entry .body{flex:1;min-width:0}
+.entry .txt{word-break:break-word;white-space:pre-wrap}
+.chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:5px}
+.chip{font-size:11px;padding:1px 7px;border-radius:999px;border:1px solid var(--line);color:var(--muted)}
+.chip.cat{color:#fff;border:none;font-weight:700}
+.chip.num{background:var(--accent-soft);color:var(--ink);border-color:transparent}
+.empty{color:var(--muted);text-align:center;padding:26px 10px;font-size:13px}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 8px;text-align:center}
+.kpi .v{font-size:22px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.2}
+.kpi .l{font-size:11px;color:var(--muted)}
+.heat{display:flex;gap:3px;overflow-x:auto;padding:4px 0 2px}
+.heat .col{display:flex;flex-direction:column;gap:3px}
+.heat .cell{width:13px;height:13px;border-radius:3px;background:var(--line)}
+.heat .cell[data-v="1"]{background:#9dc0f0}
+.heat .cell[data-v="2"]{background:#5b93e0}
+.heat .cell[data-v="3"]{background:#2a68c4}
+.heat .cell[data-v="4"]{background:#12417f}
+.heat .cell.future{background:transparent}
+.legend{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted);margin-top:6px}
+.legend i{width:11px;height:11px;border-radius:3px;display:inline-block}
+.catrow{display:flex;align-items:center;gap:8px;margin:7px 0;font-size:13px}
+.catrow .nm{flex:0 0 70px}
+.catrow .track{flex:1;height:9px;border-radius:5px;background:var(--line);overflow:hidden}
+.catrow .track i{display:block;height:100%}
+.catrow .vv{flex:0 0 100px;text-align:right;color:var(--muted);font-size:11px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.hours{display:flex;align-items:flex-end;gap:2px;height:56px;margin-top:4px}
+.hours i{flex:1;background:var(--accent);border-radius:2px 2px 0 0;min-height:2px;opacity:.85}
+.hourlabels{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:2px}
+.total{display:flex;flex-direction:column;align-items:center;min-width:64px}
+.total b{font-size:19px;font-variant-numeric:tabular-nums}
+.total span{font-size:11px;color:var(--muted)}
+select,input[type=text],input[type=date],textarea{font:inherit;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px 10px}
+select:focus,input:focus,textarea:focus{outline:2px solid var(--accent-soft);border-color:var(--accent)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+#draft{width:100%;min-height:190px;resize:vertical;line-height:1.75}
+.count{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.count.over{color:var(--danger);font-weight:700}
+.check{margin-top:10px;font-size:13px;border-radius:10px;padding:9px 11px;border:1px solid var(--line)}
+.check.ok{color:var(--ok);border-color:currentColor}
+.check.ng{color:var(--danger);border-color:currentColor}
+.check ul{margin:6px 0 0;padding-left:18px}
+label.sw{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted)}
+.sheet{position:fixed;inset:0;z-index:50;background:rgba(10,18,32,.45);display:none;align-items:flex-end;justify-content:center}
+.sheet.on{display:flex}
+.sheet .inner{background:var(--card);width:100%;max-width:600px;border-radius:16px 16px 0 0;padding:16px 14px calc(18px + env(safe-area-inset-bottom));max-height:88vh;overflow:auto}
+.field{margin-bottom:12px}
+.field label{display:block;font-size:12px;color:var(--muted);margin-bottom:4px}
+.field textarea,.field input[type=text],.field input[type=date],.field select{width:100%}
+.cats{display:flex;flex-wrap:wrap;gap:6px}
+.cats button{border-radius:999px;padding:6px 12px;font-size:13px;border:1.5px solid var(--line);background:transparent;color:var(--ink)}
+.cats button[aria-pressed="true"]{color:#fff;border-color:transparent;font-weight:700}
+nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--card);border-top:1px solid var(--line);display:flex;padding-bottom:env(safe-area-inset-bottom)}
+nav.tabs button{flex:1;background:none;border:none;color:var(--muted);padding:9px 2px 10px;font-size:11px;display:flex;flex-direction:column;align-items:center;gap:3px}
+nav.tabs button b{font-size:17px;line-height:1;font-weight:400}
+nav.tabs button[aria-selected="true"]{color:var(--accent);font-weight:700}
+.page{display:none}
+.page.on{display:block}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(74px + env(safe-area-inset-bottom));background:var(--ink);color:var(--bg);padding:9px 16px;border-radius:999px;font-size:13px;z-index:60;opacity:0;pointer-events:none;transition:opacity .18s;max-width:88%;text-align:center}
+.toast.on{opacity:.96}
+.dictbox{margin-bottom:10px}
+.dictbox label{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;margin-bottom:4px}
+.dictbox textarea{width:100%;min-height:52px;font-size:13px}
+.dictbox i.dot{width:10px;height:10px;border-radius:3px;display:inline-block}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand"><span class="mark"></span>ひとことログ<small id="hdrInfo"></small></div>
+  </header>
+
+  <section class="page on" id="page-log">
+    <div class="card">
+      <div class="compose">
+        <textarea id="input" rows="1" placeholder="1行でつぶやく（例：朝ラン5km 30分）"></textarea>
+        <button class="btn primary" id="addBtn">記録</button>
+      </div>
+      <div class="quick" id="quick"></div>
+      <div class="hint">
+        「昨日」「一昨日」「3日前」「9/3」で始めると、その日の記録になります。<br>
+        分・時間・km・ページ・冊・社・回・kg は本文から数字を拾います。「#タグ」も使えます。
+      </div>
+    </div>
+    <div class="row" style="margin:14px 2px 0">
+      <input type="text" id="q" placeholder="ことばで探す" style="flex:1">
+      <select id="qcat"><option value="">全カテゴリ</option></select>
+    </div>
+    <div id="list"></div>
+    <div class="row" style="justify-content:center;margin-top:10px">
+      <button class="btn ghost sm" id="moreBtn" hidden>もっと見る</button>
+    </div>
+  </section>
+
+  <section class="page" id="page-stat">
+    <div class="kpis">
+      <div class="kpi"><div class="v" id="kStreak">0</div><div class="l">連続日数</div></div>
+      <div class="kpi"><div class="v" id="kWeek">0</div><div class="l">今週の記録</div></div>
+      <div class="kpi"><div class="v" id="kAll">0</div><div class="l">ぜんぶ</div></div>
+    </div>
+    <div class="card">
+      <h2>記録した日</h2>
+      <div class="heat" id="heat"></div>
+      <div class="legend">すくない <i style="background:var(--line)"></i><i style="background:#9dc0f0"></i><i style="background:#5b93e0"></i><i style="background:#2a68c4"></i><i style="background:#12417f"></i> おおい</div>
+    </div>
+    <div class="card">
+      <h2>カテゴリの内訳</h2>
+      <div class="row" style="margin-bottom:8px">
+        <select id="statRange">
+          <option value="7">この7日</option>
+          <option value="30" selected>この30日</option>
+          <option value="90">この90日</option>
+          <option value="99999">ぜんぶ</option>
+        </select>
+      </div>
+      <div id="catBars"></div>
+    </div>
+    <div class="card">
+      <h2>つみあげ（今年）</h2>
+      <div id="totals" class="row" style="gap:14px"></div>
+    </div>
+    <div class="card">
+      <h2>記録した時間帯</h2>
+      <div class="hours" id="hours"></div>
+      <div class="hourlabels"><span>0時</span><span>6時</span><span>12時</span><span>18時</span><span>23時</span></div>
+    </div>
+  </section>
+
+  <section class="page" id="page-sum">
+    <div class="card">
+      <h2>SNS下書きをつくる</h2>
+      <div class="row">
+        <select id="sumRange">
+          <option value="day" selected>今日</option>
+          <option value="yesterday">昨日</option>
+          <option value="week">この7日</option>
+          <option value="month">今月</option>
+        </select>
+        <select id="sumStyle">
+          <option value="list" selected>箇条書き</option>
+          <option value="num">数字だけ</option>
+        </select>
+        <button class="btn" id="genBtn">つくる</button>
+      </div>
+      <label class="sw" style="margin-top:10px"><input type="checkbox" id="incPrivate"> 非公開の行も入れる</label>
+      <textarea id="draft" style="margin-top:10px" placeholder="「つくる」を押すと下書きが出ます。そのまま直せます。"></textarea>
+      <div class="row" style="margin-top:8px">
+        <span class="count" id="cnt">0字</span>
+        <span style="flex:1"></span>
+        <button class="btn" id="chkBtn">ことばを点検</button>
+        <button class="btn primary" id="copyBtn">コピー</button>
+      </div>
+      <div id="checkOut"></div>
+      <div class="hint">投稿はご自身の手でお願いします。このアプリは下書きまでで止まります。</div>
+    </div>
+  </section>
+
+  <section class="page" id="page-set">
+    <div class="card">
+      <h2>データ</h2>
+      <div class="row">
+        <button class="btn" id="expBtn">書き出す（JSON）</button>
+        <button class="btn" id="impBtn">読み込む</button>
+        <button class="btn" id="csvBtn">CSVで書き出す</button>
+      </div>
+      <input type="file" id="impFile" accept="application/json,.json" hidden>
+      <div class="hint">データは端末の中（IndexedDB）だけにあります。外には出ません。機種変の前に書き出してください。</div>
+    </div>
+    <div class="card">
+      <h2>クイックボタン</h2>
+      <textarea id="quickEdit" style="width:100%;min-height:70px" placeholder="1行に1つ"></textarea>
+      <div class="row" style="margin-top:8px"><button class="btn" id="quickSave">保存</button></div>
+    </div>
+    <div class="card">
+      <h2>分類のことば</h2>
+      <div class="hint" style="margin:0 0 10px">読点（、）区切り。いちばん長く一致したことばのカテゴリになります。</div>
+      <div id="dictEdit"></div>
+      <div class="row"><button class="btn" id="dictSave">保存</button><button class="btn ghost" id="dictReset">はじめに戻す</button></div>
+    </div>
+    <div class="card">
+      <h2>見た目</h2>
+      <div class="row">
+        <select id="theme">
+          <option value="auto">端末に合わせる</option>
+          <option value="light">明るい</option>
+          <option value="dark">暗い</option>
+        </select>
+      </div>
+    </div>
+    <div class="card">
+      <h2>あぶない操作</h2>
+      <button class="btn danger" id="wipeBtn">記録を全部消す</button>
+    </div>
+  </section>
+</div>
+
+<nav class="tabs" id="tabs">
+  <button data-p="log"  aria-selected="true"><b>&#9998;</b>記録</button>
+  <button data-p="stat" aria-selected="false"><b>&#9639;</b>統計</button>
+  <button data-p="sum"  aria-selected="false"><b>&#9993;</b>まとめ</button>
+  <button data-p="set"  aria-selected="false"><b>&#9881;</b>設定</button>
+</nav>
+
+<div class="sheet" id="sheet">
+  <div class="inner">
+    <div class="field"><label>ひとこと</label><textarea id="eText" rows="3"></textarea></div>
+    <div class="field"><label>カテゴリ</label><div class="cats" id="eCats"></div></div>
+    <div class="field"><label>日付</label><input type="date" id="eDate"></div>
+    <div class="field"><label>手ごたえ（任意）</label>
+      <select id="eMood"><option value="0">—</option><option value="1">1 いまひとつ</option><option value="2">2</option><option value="3">3 ふつう</option><option value="4">4</option><option value="5">5 よかった</option></select>
+    </div>
+    <div class="field"><label>おぼえることば（このカテゴリに追加）</label><input type="text" id="eLearn" placeholder="空ならおぼえません"></div>
+    <label class="sw" style="margin-bottom:14px"><input type="checkbox" id="ePub"> まとめに出してよい（公開）</label>
+    <div class="row">
+      <button class="btn danger" id="eDel">消す</button>
+      <span style="flex:1"></span>
+      <button class="btn ghost" id="eCancel">やめる</button>
+      <button class="btn primary" id="eSave">保存</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+
+/* ===================== カテゴリと初期辞書 ===================== */
+const CATS = [
+  {k:'exercise', n:'運動',  c:'#1f8a53'},
+  {k:'read',     n:'読書',  c:'#b06a12'},
+  {k:'study',    n:'学習',  c:'#7a4bd0'},
+  {k:'people',   n:'交流',  c:'#c0397a'},
+  {k:'work',     n:'仕事',  c:'#1546a0'},
+  {k:'life',     n:'生活',  c:'#c2571a'},
+  {k:'other',    n:'未分類',c:'#6b7280'}
+];
+const CATMAP = Object.fromEntries(CATS.map(c=>[c.k,c]));
+
+const DEFAULT_DICT = {
+  exercise:'運動,ラン,ランニング,ジョギング,走っ,走る,ウォーキング,散歩,歩い,ジム,筋トレ,腹筋,腕立て,スクワット,懸垂,ストレッチ,ヨガ,自転車,サイクリング,ロードバイク,泳,水泳,登山,ゴルフ,テニス,野球,素振り,縄跳び,ラジオ体操,体重',
+  read:'読書,読了,読んだ,読み,本を,書籍,新聞,雑誌,漫画,マンガ,小説,積読,ページ,Kindle,オーディブル,audible',
+  study:'勉強,学習,講座,受講,講義,復習,予習,暗記,単語,問題集,過去問,テキスト,ドリル,英語,英会話,数学,簿記,資格,試験,検定,写経,調べ物,リサーチ,インプット,セミナー,研修,ノートまとめ',
+  people:'会っ,面会,来客,飲み,飲み会,ランチ,会食,食事会,家族,妻,息子,娘,子ども,母,父,実家,友人,同級生,同僚,先輩,後輩,墓参り,法事,結婚式,葬儀,見送り,電話をもらっ',
+  work:'仕事,商談,訪問,提案,見積,納品,発注,受注,注文,打合せ,打ち合わせ,会議,出荷,請求,営業,契約,展示会,サンプル,カタログ,得意先,取引先,社内,面談,採用,工場,検品,梱包,発送,棚卸,経理,決算,出張,メール,電話,FAX,資料,見本,コード,開発,実装,デプロイ,修正,バグ,リリース,設計,テスト',
+  life:'掃除,洗濯,料理,自炊,買い物,買物,片付,片づけ,断捨離,通院,病院,歯医者,散髪,床屋,風呂,温泉,サウナ,睡眠,昼寝,起床,就寝,朝食,昼食,夕食,晩ごはん,庭,草刈,DIY,洗車,給油,銀行,役所,ゴミ出し,支払'
+};
+const DEFAULT_QUICK = ['朝ラン','読書 30分','ジム','商談','事務仕事','早寝'];
+
+/* ===================== IndexedDB ===================== */
+const DBN='hitokoto-log', DBV=1;
+let db=null;
+function openDB(){
+  return new Promise((res,rej)=>{
+    const r=indexedDB.open(DBN,DBV);
+    r.onupgradeneeded=e=>{
+      const d=e.target.result;
+      if(!d.objectStoreNames.contains('entries')) d.createObjectStore('entries',{keyPath:'id'});
+      if(!d.objectStoreNames.contains('settings')) d.createObjectStore('settings',{keyPath:'k'});
+    };
+    r.onsuccess=e=>{db=e.target.result;res(db)};
+    r.onerror=e=>rej(e.target.error);
+  });
+}
+function tx(store,mode){ return db.transaction(store,mode).objectStore(store); }
+function idbPut(store,val){ return new Promise((res,rej)=>{const r=tx(store,'readwrite').put(val);r.onsuccess=()=>res();r.onerror=e=>rej(e.target.error)}); }
+function idbDel(store,key){ return new Promise((res,rej)=>{const r=tx(store,'readwrite').delete(key);r.onsuccess=()=>res();r.onerror=e=>rej(e.target.error)}); }
+function idbAll(store){ return new Promise((res,rej)=>{const r=tx(store,'readonly').getAll();r.onsuccess=e=>res(e.target.result||[]);r.onerror=e=>rej(e.target.error)}); }
+function idbGet(store,key){ return new Promise((res,rej)=>{const r=tx(store,'readonly').get(key);r.onsuccess=e=>res(e.target.result);r.onerror=e=>rej(e.target.error)}); }
+function idbClear(store){ return new Promise((res,rej)=>{const r=tx(store,'readwrite').clear();r.onsuccess=()=>res();r.onerror=e=>rej(e.target.error)}); }
+
+/* ===================== 状態 ===================== */
+let entries=[];      // 新しい順
+let dict={};         // {cat:[word,...]}
+let quick=[];
+let listLimit=60;
+let editingId=null, editingCat='other';
+
+/* ===================== 小道具 ===================== */
+const $=s=>document.querySelector(s);
+const $$=s=>Array.from(document.querySelectorAll(s));
+const pad=n=>String(n).padStart(2,'0');
+const dkey=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+const addDays=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x};
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let toastT=null;
+function toast(msg){
+  const t=$('#toast'); t.textContent=msg; t.classList.add('on');
+  clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('on'),1900);
+}
+
+/* ===================== 日付の読み取り ===================== */
+function parseDate(text){
+  const now=new Date(); let m;
+  if((m=text.match(/^\s*(おととい|一昨日)\s*/))) return {d:addDays(now,-2),rest:text.slice(m[0].length)};
+  if((m=text.match(/^\s*昨日\s*/)))            return {d:addDays(now,-1),rest:text.slice(m[0].length)};
+  if((m=text.match(/^\s*(\d{1,2})日前\s*/)))   return {d:addDays(now,-parseInt(m[1],10)),rest:text.slice(m[0].length)};
+  if((m=text.match(/^\s*(\d{1,2})[\/月](\d{1,2})日?\s*/))){
+    const d=new Date(now.getFullYear(),parseInt(m[1],10)-1,parseInt(m[2],10));
+    if(d-now>1000*60*60*24*3) d.setFullYear(d.getFullYear()-1);   // 未来なら去年
+    return {d,rest:text.slice(m[0].length)};
+  }
+  return {d:now,rest:text};
+}
+
+/* ===================== 数字の抜き出し ===================== */
+function extractNums(t){
+  const n={}; let min=0, hit=false;
+  for(const m of t.matchAll(/(\d+(?:\.\d+)?)\s*(?:時間|hr?|H)(?![a-zA-Z])/g)){ min+=parseFloat(m[1])*60; hit=true; }
+  for(const m of t.matchAll(/(\d+(?:\.\d+)?)\s*(?:分|min)(?![a-zA-Z])/g)){ min+=parseFloat(m[1]); hit=true; }
+  if(hit) n.min=Math.round(min);
+  const one=(re,key,f)=>{ let s=0,h=false; for(const m of t.matchAll(re)){ s+=parseFloat(m[1]); h=true; } if(h) n[key]=f?f(s):s; };
+  one(/(\d+(?:\.\d+)?)\s*(?:km|㎞|キロ(?!グラム))/gi,'km',v=>Math.round(v*100)/100);
+  one(/(\d+)\s*(?:ページ|頁)/g,'page');
+  one(/(\d+)\s*冊/g,'book');
+  one(/(\d+)\s*(?:社|件|軒)/g,'case');
+  one(/(\d+)\s*(?:回|セット)/g,'rep');
+  const kg=t.match(/(\d+(?:\.\d+)?)\s*(?:kg|キログラム)/i); if(kg) n.kg=parseFloat(kg[1]);
+  return n;
+}
+const NUMLABEL={min:'分',km:'km',page:'ページ',book:'冊',case:'件',rep:'回',kg:'kg'};
+function fmtMin(m){ m=Math.round(m); if(m<60) return m+'分'; const h=Math.floor(m/60),r=m%60; return h+'時間'+(r?r+'分':''); }
+function numChips(n){
+  return Object.keys(n).map(k=> k==='min' ? fmtMin(n.min) : n[k]+NUMLABEL[k]);
+}
+
+/* ===================== 分類 ===================== */
+function classify(text){
+  let m;
+  if((m=text.match(/^\s*(運動|読書|学習|交流|仕事|生活)\s*[:：]\s*/))){
+    const c=CATS.find(x=>x.n===m[1]); if(c) return {cat:c.k, rest:text.slice(m[0].length)};
+  }
+  let best={cat:'other',len:0};
+  for(const c of CATS){
+    if(c.k==='other') continue;
+    for(const w of (dict[c.k]||[])){
+      if(w && w.length>best.len && text.includes(w)) best={cat:c.k,len:w.length};
+    }
+  }
+  return {cat:best.cat, rest:text};
+}
+function extractTags(t){ return Array.from(t.matchAll(/[#＃]([^\s#＃]{1,20})/g)).map(m=>m[1]); }
+const PRIVATE_RE=/(株式会社|有限会社|\(有\)|（有）|\(株\)|（株）|様|円|¥|￥|万|見積|請求)/;
+
+/* ===================== 追加 ===================== */
+async function addEntry(raw){
+  const text0=raw.trim(); if(!text0) return;
+  const {d,rest}=parseDate(text0);
+  const text=rest.trim()||text0;
+  const {cat}=classify(text);
+  const now=new Date();
+  const ts=(dkey(d)===dkey(now))?now.getTime():new Date(d.getFullYear(),d.getMonth(),d.getDate(),now.getHours(),now.getMinutes()).getTime();
+  const e={
+    id:'e'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),
+    ts, date:dkey(d), text, cat, tags:extractTags(text), nums:extractNums(text),
+    mood:0, pub:!PRIVATE_RE.test(text), created:Date.now(), updated:Date.now()
+  };
+  await idbPut('entries',e);
+  entries.unshift(e); entries.sort((a,b)=>b.ts-a.ts);
+  renderAll();
+  toast(CATMAP[cat].n+'に入れました'+(e.pub?'':'（非公開）'));
+}
+
+/* ===================== 描画：一覧 ===================== */
+function filtered(){
+  const q=$('#q').value.trim().toLowerCase(), c=$('#qcat').value;
+  return entries.filter(e=>{
+    if(c && e.cat!==c) return false;
+    if(q && !(e.text.toLowerCase().includes(q)||(e.tags||[]).join(' ').toLowerCase().includes(q))) return false;
+    return true;
+  });
+}
+function renderList(){
+  const rows=filtered(), show=rows.slice(0,listLimit), box=$('#list');
+  $('#moreBtn').hidden = rows.length<=listLimit;
+  if(!rows.length){ box.innerHTML='<div class="empty">まだ記録がありません。<br>上の欄に1行つぶやいてみてください。</div>'; return; }
+  let html='', lastDate='';
+  const today=dkey(new Date()), yest=dkey(addDays(new Date(),-1));
+  for(const e of show){
+    if(e.date!==lastDate){
+      lastDate=e.date;
+      const d=new Date(e.date+'T00:00:00');
+      const w='日月火水木金土'[d.getDay()];
+      const nm = e.date===today?'今日': e.date===yest?'昨日' : (d.getMonth()+1)+'月'+d.getDate()+'日';
+      const cnt=rows.filter(x=>x.date===e.date).length;
+      html+='<div class="dayhead"><b>'+nm+'</b><span>('+w+')</span><span>'+cnt+'件</span></div>';
+    }
+    const t=new Date(e.ts);
+    const chips=[ '<span class="chip cat" style="background:'+CATMAP[e.cat].c+'">'+CATMAP[e.cat].n+'</span>' ]
+      .concat(numChips(e.nums||{}).map(x=>'<span class="chip num">'+esc(x)+'</span>'))
+      .concat((e.tags||[]).map(x=>'<span class="chip">#'+esc(x)+'</span>'))
+      .concat(e.pub?[]:['<span class="chip" style="color:var(--warn)">非公開</span>'])
+      .concat(e.mood?['<span class="chip">手ごたえ'+e.mood+'</span>']:[]);
+    html+='<div class="entry" data-id="'+e.id+'"><div class="time">'+pad(t.getHours())+':'+pad(t.getMinutes())+'</div>'
+        + '<div class="body"><div class="txt">'+esc(e.text)+'</div><div class="chips">'+chips.join('')+'</div></div></div>';
+  }
+  box.innerHTML=html;
+}
+
+/* ===================== 描画：統計 ===================== */
+function streak(){
+  const days=new Set(entries.map(e=>e.date));
+  let n=0, d=new Date();
+  if(!days.has(dkey(d))) d=addDays(d,-1);
+  while(days.has(dkey(d))){ n++; d=addDays(d,-1); }
+  return n;
+}
+function renderStat(){
+  const today=new Date();
+  $('#kStreak').textContent=streak();
+  const w0=addDays(today,-6); w0.setHours(0,0,0,0);
+  $('#kWeek').textContent=entries.filter(e=>e.ts>=w0.getTime()).length;
+  $('#kAll').textContent=entries.length;
+
+  // ヒートマップ（直近15週）
+  const cnt={}; entries.forEach(e=>cnt[e.date]=(cnt[e.date]||0)+1);
+  const end=new Date(today); end.setHours(0,0,0,0);
+  const endSun=addDays(end,-end.getDay());          // 今週の日曜
+  let html='';
+  for(let w=14;w>=0;w--){
+    html+='<div class="col">';
+    for(let dow=0;dow<7;dow++){
+      const d=addDays(endSun,-w*7+dow);
+      const k=dkey(d), c=cnt[k]||0;
+      const v=c===0?0:c<=1?1:c<=3?2:c<=5?3:4;
+      const fut=d>end?' future':'';
+      html+='<div class="cell'+fut+'" data-v="'+v+'" title="'+k+' '+c+'件"></div>';
+    }
+    html+='</div>';
+  }
+  $('#heat').innerHTML=html;
+
+  // カテゴリ内訳
+  const days=parseInt($('#statRange').value,10);
+  const from=addDays(today,-days+1); from.setHours(0,0,0,0);
+  const rows=days>9000?entries:entries.filter(e=>e.ts>=from.getTime());
+  const by={}; rows.forEach(e=>{ by[e.cat]=by[e.cat]||{n:0,min:0}; by[e.cat].n++; by[e.cat].min+=(e.nums&&e.nums.min)||0; });
+  const max=Math.max(1,...Object.values(by).map(v=>v.n));
+  $('#catBars').innerHTML = CATS.filter(c=>by[c.k]).map(c=>{
+    const v=by[c.k];
+    const t=v.min?fmtMin(v.min):'';
+    return '<div class="catrow"><span class="nm" style="color:'+c.c+';font-weight:700">'+c.n+'</span>'
+      + '<span class="track"><i style="width:'+(v.n/max*100)+'%;background:'+c.c+'"></i></span>'
+      + '<span class="vv">'+v.n+'件'+(t?' / '+t:'')+'</span></div>';
+  }).join('') || '<div class="empty">この期間の記録はありません</div>';
+
+  // つみあげ（今年）
+  const y=today.getFullYear();
+  const yr=entries.filter(e=>new Date(e.ts).getFullYear()===y);
+  const sum={}; yr.forEach(e=>{ for(const k in (e.nums||{})) sum[k]=(sum[k]||0)+e.nums[k]; });
+  const order=['min','km','page','book','case','rep'];
+  const cells=order.filter(k=>sum[k]).map(k=>{
+    if(k==='min') return '<div class="total"><b>'+fmtMin(sum[k])+'</b><span>つかった時間</span></div>';
+    return '<div class="total"><b>'+(Math.round(sum[k]*10)/10)+'</b><span>'+NUMLABEL[k]+'</span></div>';
+  });
+  cells.push('<div class="total"><b>'+yr.length+'</b><span>記録</span></div>');
+  $('#totals').innerHTML=cells.join('');
+
+  // 時間帯
+  const hh=new Array(24).fill(0);
+  entries.forEach(e=>hh[new Date(e.ts).getHours()]++);
+  const hmax=Math.max(1,...hh);
+  $('#hours').innerHTML=hh.map((v,i)=>'<i style="height:'+(v/hmax*100)+'%" title="'+i+'時 '+v+'件"></i>').join('');
+}
+
+/* ===================== まとめ（SNS下書き） ===================== */
+function rangeEntries(kind){
+  const now=new Date(); let from,to,label;
+  if(kind==='day'){ from=new Date(now); from.setHours(0,0,0,0); to=new Date(from); to.setDate(to.getDate()+1);
+    label=(now.getMonth()+1)+'月'+now.getDate()+'日'; }
+  else if(kind==='yesterday'){ const y=addDays(now,-1); from=new Date(y); from.setHours(0,0,0,0); to=new Date(from); to.setDate(to.getDate()+1);
+    label=(y.getMonth()+1)+'月'+y.getDate()+'日'; }
+  else if(kind==='week'){ to=new Date(now); to.setHours(23,59,59,999); from=addDays(now,-6); from.setHours(0,0,0,0);
+    label='この7日'; }
+  else { from=new Date(now.getFullYear(),now.getMonth(),1); to=new Date(now.getFullYear(),now.getMonth()+1,1);
+    label=(now.getMonth()+1)+'月'; }
+  const inc=$('#incPrivate').checked;
+  return {label, rows:entries.filter(e=>e.ts>=from.getTime()&&e.ts<to.getTime()&&(inc||e.pub))};
+}
+function genDraft(){
+  const kind=$('#sumRange').value, style=$('#sumStyle').value;
+  const {label,rows}=rangeEntries(kind);
+  if(!rows.length){ $('#draft').value=''; toast('この期間に出せる記録がありません'); updCount(); return; }
+  const by={}; rows.forEach(e=>{ (by[e.cat]=by[e.cat]||[]).push(e); });
+  const sum={}; rows.forEach(e=>{ for(const k in (e.nums||{})) sum[k]=(sum[k]||0)+e.nums[k]; });
+  let out='';
+
+  if(style==='list'){
+    out=label+'のきろく。\n\n';
+    for(const c of CATS){
+      const g=by[c.k]; if(!g) continue;
+      for(const e of g) out+='・'+e.text.replace(/[#＃][^\s#＃]+/g,'').trim()+'\n';
+    }
+    const s=streak();
+    if(s>=2) out+='\n'+s+'日つづきました。';
+  }else{
+    out=label+'のふりかえり。\n\n';
+    for(const c of CATS){
+      const g=by[c.k]; if(!g) continue;
+      const m=g.reduce((a,e)=>a+((e.nums&&e.nums.min)||0),0);
+      const t=m?'／'+fmtMin(m):'';
+      out+=c.n+' '+g.length+'回'+t+'\n';
+    }
+    const days=new Set(rows.map(e=>e.date)).size;
+    out+='\n記録した日は'+days+'日。';
+    if(sum.km) out+='走った距離は'+(Math.round(sum.km*10)/10)+'km。';
+    if(sum.page) out+='読んだページは'+sum.page+'ページ。';
+    out+='\n来週も同じ調子でいきます。';
+  }
+  $('#draft').value=out; updCount(); checkText();
+}
+
+/* 語尾・禁止語の点検（tsuki-voice のルール） */
+const NG=[
+  {w:'ですよ',   m:'「〜ですよ」は使わない。「〜ですね」へ'},
+  {w:'ですよね', m:'「〜ですよね」は使わない'},
+  {w:'なんです', m:'「〜なんです」は使わない。「〜です」で言い切る'},
+  {w:'お気軽に', m:'「お気軽に」は営業臭。削る'},
+  {w:'是非',     m:'「是非」は使わない'},
+  {w:'ぜひ',     m:'「ぜひ」は押し売りに寄る。削る'},
+  {w:'最高品質', m:'断定的な最上級は使わない'},
+  {w:'業界最安', m:'断定的な最上級は使わない'},
+  {w:'皆様',     m:'他人行儀な呼びかけは使わない'},
+  {w:'各位',     m:'他人行儀な呼びかけは使わない'},
+  {w:'こんにちは',m:'冒頭の挨拶は入れず本題から'}
+];
+function checkText(){
+  const t=$('#draft').value, out=$('#checkOut'); const bad=[];
+  NG.forEach(n=>{ if(t.includes(n.w)) bad.push(n.m); });
+  const em=(t.match(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/gu)||[]).length;
+  if(em>2) bad.push('絵文字が'+em+'個。2個までに減らす');
+  const lines=t.split('\n').map(s=>s.trim()).filter(s=>s&&!s.startsWith('・'));
+  for(let i=0;i+2<lines.length;i++){
+    const e3=lines.slice(i,i+3).map(s=>s.replace(/[。！？!?]+$/,'').slice(-3));
+    if(e3[0]&&e3[0]===e3[1]&&e3[1]===e3[2]){ bad.push('同じ語尾（'+e3[0]+'）が3回つづく'); break; }
+  }
+  const n=t.replace(/\s/g,'').length;
+  if(n>140) bad.push('Xの140字を'+(n-140)+'字こえている');
+  if(!t.trim()){ out.innerHTML=''; return; }
+  out.innerHTML = bad.length
+    ? '<div class="check ng">直したいところ<ul>'+bad.map(b=>'<li>'+esc(b)+'</li>').join('')+'</ul></div>'
+    : '<div class="check ok">禁止ルールへの引っかかりはありません</div>';
+}
+function updCount(){
+  const t=$('#draft').value, n=[...t].length;
+  const el=$('#cnt'); el.textContent=n+'字'; el.classList.toggle('over',n>140);
+}
+
+/* ===================== 編集シート ===================== */
+function openSheet(id){
+  const e=entries.find(x=>x.id===id); if(!e) return;
+  editingId=id; editingCat=e.cat;
+  $('#eText').value=e.text; $('#eDate').value=e.date;
+  $('#eMood').value=String(e.mood||0); $('#ePub').checked=!!e.pub;
+  $('#eLearn').value='';
+  renderCatPicker();
+  $('#sheet').classList.add('on');
+}
+function renderCatPicker(){
+  $('#eCats').innerHTML=CATS.map(c=>
+    '<button data-c="'+c.k+'" aria-pressed="'+(c.k===editingCat)+'" style="'+(c.k===editingCat?'background:'+c.c:'')+'">'+c.n+'</button>').join('');
+}
+function guessWord(text){
+  const m=text.match(/[一-龠々]{2,6}|[ァ-ヶー]{2,8}/g);
+  if(!m) return '';
+  return m.sort((a,b)=>b.length-a.length)[0];
+}
+async function saveSheet(){
+  const e=entries.find(x=>x.id===editingId); if(!e) return;
+  const text=$('#eText').value.trim(); if(!text) return;
+  const changedCat = editingCat!==e.cat;
+  e.text=text; e.cat=editingCat; e.date=$('#eDate').value||e.date;
+  e.mood=parseInt($('#eMood').value,10)||0; e.pub=$('#ePub').checked;
+  e.tags=extractTags(text); e.nums=extractNums(text);
+  const d=new Date(e.date+'T00:00:00'); const old=new Date(e.ts);
+  e.ts=new Date(d.getFullYear(),d.getMonth(),d.getDate(),old.getHours(),old.getMinutes()).getTime();
+  e.updated=Date.now();
+  await idbPut('entries',e);
+  const w=$('#eLearn').value.trim();
+  if(w && editingCat!=='other'){
+    dict[editingCat]=dict[editingCat]||[];
+    if(!dict[editingCat].includes(w)){ dict[editingCat].push(w); await saveDict(); toast('「'+w+'」を'+CATMAP[editingCat].n+'におぼえました'); }
+  }else if(changedCat){ toast('カテゴリを直しました'); }
+  entries.sort((a,b)=>b.ts-a.ts);
+  closeSheet(); renderAll();
+}
+function closeSheet(){ $('#sheet').classList.remove('on'); editingId=null; }
+
+/* ===================== 設定 ===================== */
+async function saveDict(){ await idbPut('settings',{k:'dict',v:dict}); }
+function renderDictEdit(){
+  $('#dictEdit').innerHTML=CATS.filter(c=>c.k!=='other').map(c=>
+    '<div class="dictbox"><label><i class="dot" style="background:'+c.c+'"></i>'+c.n+'</label>'
+    +'<textarea data-c="'+c.k+'">'+esc((dict[c.k]||[]).join('、'))+'</textarea></div>').join('');
+}
+function renderQuick(){
+  $('#quick').innerHTML=quick.map(q=>'<button data-q="'+esc(q)+'">'+esc(q)+'</button>').join('');
+  $('#quickEdit').value=quick.join('\n');
+}
+function exportJSON(){
+  const blob=new Blob([JSON.stringify({app:'hitokoto-log',version:1,exported:new Date().toISOString(),entries,dict,quick},null,1)],{type:'application/json'});
+  dl(blob,'hitokoto-log_'+dkey(new Date())+'.json');
+}
+function exportCSV(){
+  const head='日付,時刻,カテゴリ,本文,分,km,ページ,冊,件,回,公開,手ごたえ\n';
+  const body=entries.slice().reverse().map(e=>{
+    const t=new Date(e.ts), n=e.nums||{};
+    const q=s=>'"'+String(s==null?'':s).replace(/"/g,'""')+'"';
+    return [e.date,pad(t.getHours())+':'+pad(t.getMinutes()),CATMAP[e.cat].n,q(e.text),
+            n.min||'',n.km||'',n.page||'',n.book||'',n.case||'',n.rep||'',e.pub?'公開':'非公開',e.mood||''].join(',');
+  }).join('\n');
+  dl(new Blob(['﻿'+head+body],{type:'text/csv;charset=utf-8'}),'hitokoto-log_'+dkey(new Date())+'.csv');
+}
+function dl(blob,name){
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name;
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),3000);
+}
+
+/* ===================== 起動 ===================== */
+function renderAll(){ renderList(); renderStat(); }
+
+async function boot(){
+  await openDB();
+  entries=(await idbAll('entries')).sort((a,b)=>b.ts-a.ts);
+  const sd=await idbGet('settings','dict');
+  dict = sd?sd.v : Object.fromEntries(Object.entries(DEFAULT_DICT).map(([k,v])=>[k,v.split(',')]));
+  if(!sd) await saveDict();
+  const sq=await idbGet('settings','quick');
+  quick = sq?sq.v:DEFAULT_QUICK.slice();
+  if(!sq) await idbPut('settings',{k:'quick',v:quick});
+  const st=await idbGet('settings','theme');
+  applyTheme(st?st.v:'auto'); $('#theme').value=st?st.v:'auto';
+
+  $('#qcat').innerHTML='<option value="">全カテゴリ</option>'+CATS.map(c=>'<option value="'+c.k+'">'+c.n+'</option>').join('');
+  renderQuick(); renderDictEdit(); renderAll();
+  $('#hdrInfo').textContent=entries.length?entries.length+'件':'';
+}
+function applyTheme(v){
+  if(v==='auto') document.documentElement.removeAttribute('data-theme');
+  else document.documentElement.setAttribute('data-theme',v);
+}
+
+/* ===================== イベント ===================== */
+$('#addBtn').onclick=async()=>{ const v=$('#input').value; $('#input').value=''; autoGrow(); await addEntry(v); $('#hdrInfo').textContent=entries.length+'件'; };
+$('#input').addEventListener('keydown',e=>{
+  if(e.key==='Enter'&&(e.ctrlKey||e.metaKey||!e.shiftKey&&!e.isComposing)){ e.preventDefault(); $('#addBtn').click(); }
+});
+function autoGrow(){ const t=$('#input'); t.style.height='auto'; t.style.height=Math.min(140,t.scrollHeight)+'px'; }
+$('#input').addEventListener('input',autoGrow);
+$('#quick').onclick=e=>{ const b=e.target.closest('button[data-q]'); if(!b) return; $('#input').value=b.dataset.q; $('#input').focus(); autoGrow(); };
+$('#list').onclick=e=>{ const d=e.target.closest('.entry'); if(d) openSheet(d.dataset.id); };
+$('#q').oninput=()=>{listLimit=60;renderList()};
+$('#qcat').onchange=()=>{listLimit=60;renderList()};
+$('#moreBtn').onclick=()=>{listLimit+=100;renderList()};
+$('#statRange').onchange=renderStat;
+
+$('#eCats').onclick=e=>{ const b=e.target.closest('button[data-c]'); if(!b) return;
+  editingCat=b.dataset.c; renderCatPicker();
+  if(!$('#eLearn').value) $('#eLearn').value=guessWord($('#eText').value)||'';
+};
+$('#eSave').onclick=saveSheet;
+$('#eCancel').onclick=closeSheet;
+$('#sheet').onclick=e=>{ if(e.target.id==='sheet') closeSheet(); };
+$('#eDel').onclick=async()=>{
+  if(!editingId||!confirm('この記録を消します。よろしいですか。')) return;
+  await idbDel('entries',editingId);
+  entries=entries.filter(x=>x.id!==editingId); closeSheet(); renderAll();
+  $('#hdrInfo').textContent=entries.length?entries.length+'件':''; toast('消しました');
+};
+
+$('#genBtn').onclick=genDraft;
+$('#draft').oninput=()=>{updCount()};
+$('#chkBtn').onclick=checkText;
+$('#copyBtn').onclick=async()=>{
+  const t=$('#draft').value; if(!t.trim()){ toast('先に下書きをつくってください'); return; }
+  try{ await navigator.clipboard.writeText(t); toast('コピーしました'); }
+  catch(_){ $('#draft').select(); document.execCommand('copy'); toast('コピーしました'); }
+};
+
+$('#expBtn').onclick=exportJSON;
+$('#csvBtn').onclick=exportCSV;
+$('#impBtn').onclick=()=>$('#impFile').click();
+$('#impFile').onchange=async e=>{
+  const f=e.target.files[0]; if(!f) return;
+  try{
+    const j=JSON.parse(await f.text());
+    if(!Array.isArray(j.entries)) throw new Error('形式がちがいます');
+    const have=new Set(entries.map(x=>x.id)); let add=0;
+    for(const en of j.entries){ if(!have.has(en.id)){ await idbPut('entries',en); entries.push(en); add++; } }
+    if(j.dict){ dict=j.dict; await saveDict(); renderDictEdit(); }
+    if(j.quick){ quick=j.quick; await idbPut('settings',{k:'quick',v:quick}); renderQuick(); }
+    entries.sort((a,b)=>b.ts-a.ts); renderAll();
+    $('#hdrInfo').textContent=entries.length+'件';
+    toast(add+'件を読み込みました');
+  }catch(err){ alert('読み込めませんでした：'+err.message); }
+  e.target.value='';
+};
+$('#quickSave').onclick=async()=>{
+  quick=$('#quickEdit').value.split('\n').map(s=>s.trim()).filter(Boolean);
+  await idbPut('settings',{k:'quick',v:quick}); renderQuick(); toast('保存しました');
+};
+$('#dictSave').onclick=async()=>{
+  $$('#dictEdit textarea').forEach(t=>{
+    dict[t.dataset.c]=t.value.split(/[、,\n]/).map(s=>s.trim()).filter(Boolean);
+  });
+  await saveDict(); toast('保存しました');
+};
+$('#dictReset').onclick=async()=>{
+  if(!confirm('分類のことばをはじめの状態に戻します。')) return;
+  dict=Object.fromEntries(Object.entries(DEFAULT_DICT).map(([k,v])=>[k,v.split(',')]));
+  await saveDict(); renderDictEdit(); toast('戻しました');
+};
+$('#theme').onchange=async e=>{ applyTheme(e.target.value); await idbPut('settings',{k:'theme',v:e.target.value}); };
+$('#wipeBtn').onclick=async()=>{
+  if(!confirm('記録をすべて消します。取り消せません。')) return;
+  if(!confirm('本当によろしいですか。先に書き出しをおすすめします。')) return;
+  await idbClear('entries'); entries=[]; renderAll(); $('#hdrInfo').textContent=''; toast('全部消しました');
+};
+$('#tabs').onclick=e=>{
+  const b=e.target.closest('button[data-p]'); if(!b) return;
+  $$('#tabs button').forEach(x=>x.setAttribute('aria-selected',String(x===b)));
+  $$('.page').forEach(p=>p.classList.toggle('on',p.id==='page-'+b.dataset.p));
+  if(b.dataset.p==='stat') renderStat();
+  window.scrollTo(0,0);
+};
+
+boot().catch(err=>{ document.body.insertAdjacentHTML('afterbegin','<div class="card" style="margin:12px">起動できませんでした：'+esc(err.message)+'</div>'); });
+if('serviceWorker' in navigator && location.protocol!=='file:'){
+  navigator.serviceWorker.register('sw.js').catch(()=>{});
+}
+</script>
+</body>
+</html>
